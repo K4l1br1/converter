@@ -1,7 +1,7 @@
 #include "converter.h"
-#include "distance.h"
-#include "weight.h"
-#include "temperature.h"
+#include "include/distance.h"
+#include "include/weight.h"
+#include "include/temperature.h"
 #include <iostream>
 #include <stdexcept>
 
