@@ -1,4 +1,4 @@
-#include "temperature.h"
+#include "../include/temperature.h"
 #include <stdexcept>
 #include <algorithm>
 
