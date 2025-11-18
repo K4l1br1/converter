@@ -16,6 +16,15 @@ OBJS := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRCS))
 # Правило по умолчанию
 all: $(BIN)
 
+# Test target
+TEST_BIN := test_runner
+
+test: CXXFLAGS += -I./tests
+test: $(TEST_BIN)
+
+$(TEST_BIN): $(SRC_DIR)/converter.cpp $(SRC_DIR)/distance.cpp $(SRC_DIR)/temperature.cpp $(SRC_DIR)/weight.cpp tests/test_runner.cpp
+	$(CXX) $(CXXFLAGS) $^ -o $(TEST_BIN)
+
 # Линковка
 $(BIN): $(OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $@
@@ -32,6 +41,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
 clean:
 	rm -rf $(OBJ_DIR)
 	rm -f $(BIN)
+	rm -f $(TEST_BIN)
 
 # Установка (для deb пакета)
 DESTDIR ?= /
