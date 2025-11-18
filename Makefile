@@ -33,4 +33,11 @@ clean:
 	rm -rf $(OBJ_DIR)
 	rm -f $(BIN)
 
-.PHONY: all clean
+# Установка (для deb пакета)
+DESTDIR ?= /
+PREFIX ?= /usr
+install: $(BIN)
+	install -d $(DESTDIR)$(PREFIX)/bin
+	install -m 755 $(BIN) $(DESTDIR)$(PREFIX)/bin/
+
+.PHONY: all clean install

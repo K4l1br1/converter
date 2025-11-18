@@ -1,0 +1,8 @@
+.vscode
+
+build/
+unit_converter
+*.o
+*.deb
+
+debian/usr/
