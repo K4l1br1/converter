@@ -7,27 +7,30 @@ SRC_DIR := src
 OBJ_DIR := build
 BIN := unit_converter
 
-# Все .cpp файлы из src
-SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
+# Файлы из поддиректории src
+SRCS := $(wildcard $(SRC_DIR)/*.cpp)
 
-# Объектные файлы в build, путь сохраняется
-OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
+# Объектные файлы в build
+OBJS := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRCS))
 
-# Правило по умолчанию - сборка
+# Правило по умолчанию
 all: $(BIN)
 
 # Линковка
 $(BIN): $(OBJS)
-	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
-# Компиляция .cpp -> .o с созданием папок
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	@mkdir -p $(dir $@)
+# Создание директории для объектных файлов
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
+
+# Компиляция объектов
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Очистка артефактов сборки
+# Очистка артефактов
 clean:
-	rm -rf $(OBJ_DIR) $(BIN)
+	rm -rf $(OBJ_DIR)
+	rm -f $(BIN)
 
 .PHONY: all clean
