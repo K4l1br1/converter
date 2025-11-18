@@ -7,7 +7,7 @@ using namespace std;
 
 void clearInput() {
     cin.clear();
-    cin.ignore(numeric_limits<streamsize>::max(), '\\n');
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
 }
 
 int main() {
@@ -21,7 +21,7 @@ int main() {
         converter.displayMenu();
         
         int choice;
-        cout << "\\nВыберите тип конвертации (0 для выхода): ";
+        cout << "\nВыберите тип конвертации (0 для выхода): ";
         cin >> choice;
         
         if (cin.fail()) {
@@ -52,7 +52,7 @@ int main() {
                 continue;
         }
         
-        cout << "\\nДоступные единицы: " << converter.getAvailableUnits(type) << endl;
+        cout << "\nДоступные единицы: " << converter.getAvailableUnits(type) << endl;
         
         string fromUnit, toUnit;
         double value;
@@ -74,7 +74,7 @@ int main() {
         
         try {
             double result = converter.convert(type, fromUnit, toUnit, value);
-            cout << "\\n>>> Результат: " << value << " " << fromUnit 
+            cout << "\n>>> Результат: " << value << " " << fromUnit 
                  << " = " << result << " " << toUnit << endl << endl;
         } catch (const exception& e) {
             cout << "Ошибка: " << e.what() << endl << endl;
