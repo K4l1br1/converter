@@ -23,8 +23,10 @@ echo -e "${YELLOW}Компиляция программы...${NC}"
 make
 
 # Создание структуры директорий для пакета
-echo -e "${YELLOW}Создание структуры пакета...${NC}"
+echo -e "${YELLOW}Создание структуры пакета...${NC}"                
+mkdir -p debian/DEBIAN          
 mkdir -p debian/usr/bin
+chmod 755 debian/DEBIAN
 
 # Установка файлов
 echo -e "${YELLOW}Установка файлов...${NC}"
@@ -32,6 +34,7 @@ make install DESTDIR=$(pwd)/debian PREFIX=/usr
 
 # Сборка deb пакета
 echo -e "${YELLOW}Сборка deb пакета...${NC}"
+chmod 755 debian
 dpkg-deb --build debian unit-converter_1.0.0_amd64.deb
 
 # Проверка пакета
