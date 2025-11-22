@@ -51,7 +51,7 @@ jobs:
 
     - name: Create Debian package if build_deb.sh exists
       run: |
-        if [ -x ./build_deb.sh ]; then
+        if [ -f ./build_deb.sh ]; then
           echo "Executing build_deb.sh..."
           chmod +x ./build_deb.sh
           ./build_deb.sh
