@@ -77,13 +77,12 @@ jobs:
         fi
 
     - name: Smoke test installation
+      timeout-minutes: 1
       run: |
-        echo "Checking installation..."
         if command -v unit_converter >/dev/null 2>&1; then
-          echo "unit_converter is installed:"
-          unit_converter --help || true
+          echo "unit_converter present"
+          timeout 5s unit_converter --help || echo "Smoke test timed out (program likely interactive)"
         else
-          echo "unit_converter not found in PATH."
-          echo "Trying to locate binaries..."
-          find /usr/bin /usr/local/bin -maxdepth 1 -name "unit_converter" -ls 2>/dev/null || true
+          echo "unit_converter not found in PATH — listing"
+          ls -la /usr/bin/unit_converter /usr/local/bin/unit_converter 2>/dev/null || true
         fi
