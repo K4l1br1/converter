@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-and-test:
+    name: Build, Test, Package and Install
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+            build-essential g++ make \
+            dpkg-dev debhelper fakeroot
+
+    - name: Build project
+      run: |
+        echo "Building project..."
+        make -j"$(nproc)"
+
+    - name: Build tests
+      run: |
+        echo "Building tests..."
+        make test
+
+    - name: Run unit tests
+      run: |
+        echo "Running test runner..."
+        # Тестовый бинарник может быть в корне или в tests/
+        if [ -f ./test_runner ]; then
+          chmod +x ./test_runner
+          ./test_runner
+        elif [ -f ./tests/test_runner ]; then
+          chmod +x ./tests/test_runner
+          ./tests/test_runner
+        else
+          echo "ERROR: test_runner binary was not found after make test"
+          exit 1
+        fi
+
+    - name: Create Debian package if build_deb.sh exists
+      run: |
+        if [ -x ./build_deb.sh ]; then
+          echo "Executing build_deb.sh..."
+          chmod +x ./build_deb.sh
+          ./build_deb.sh
+        else
+          echo "No build_deb.sh — skipping .deb package build"
+        fi
+
+    - name: List build artifacts
+      run: |
+        echo "Listing artifacts..."
+        ls -la
+
+    - name: Install .deb package or fallback to make install
+      run: |
+        DEB=$(ls *.deb 2>/dev/null || true)
+
+        if [ -n "$DEB" ]; then
+          echo "Found .deb: $DEB"
+          sudo dpkg -i "$DEB" || (sudo apt-get -f install -y && sudo dpkg -i "$DEB")
+        else
+          echo "No .deb found — performing sudo make install"
+          sudo make install
+        fi
+
+    - name: Smoke test installation
+      run: |
+        echo "Checking installation..."
+        if command -v unit_converter >/dev/null 2>&1; then
+          echo "unit_converter is installed:"
+          unit_converter --help || true
+        else
+          echo "unit_converter not found in PATH."
+          echo "Trying to locate binaries..."
+          find /usr/bin /usr/local/bin -maxdepth 1 -name "unit_converter" -ls 2>/dev/null || true
+        fi
