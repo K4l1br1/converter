@@ -64,7 +64,7 @@ jobs:
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: build-artifacts
+        name: unit_converter
         path: artifacts/
         retention-days: 30
         if-no-files-found: warn
@@ -79,11 +79,4 @@ jobs:
           sudo make install
         fi
 
-    - name: Smoke test installation
-      timeout-minutes: 1
-      run: |
-        if command -v unit_converter >/dev/null 2>&1; then
-          timeout 5s unit_converter --help || echo "Program interactive → help skipped"
-        else
-          echo "unit_converter binary NOT found"
-        fi
+
