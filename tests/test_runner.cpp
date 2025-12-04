@@ -38,81 +38,85 @@ static void expect_throws_invalid(const std::function<void()>& f, const char* ms
 
 void test_distance() {
     std::cout << "Running distance tests...\n";
-    expect_equal(
-        DistanceConverter::convert("m", "km", 1500),
-        1.5,
-        "1500 m -> 1.5 km"
-    );
+
+    expect_equal(DistanceConverter::convert("m", "km", 1500), 1.5, "1500 m -> 1.5 km");
+    expect_equal(DistanceConverter::convert("mi", "m", 1), 1609.34, "1 mi -> 1609.34 m");
+    expect_equal(DistanceConverter::convert("ft", "m", 3.2808399), 1.0, "~3.2808399 ft -> 1 m");
+
+    expect_equal(DistanceConverter::convert("m", "km", 0), 0.0, "0 m -> 0 km");
+
+    expect_equal(DistanceConverter::convert("km", "m", -1.5), -1500.0, "-1.5 km -> -1500 m");
+    expect_equal(DistanceConverter::convert("m", "ft", -1.0), -3.28084, "-1 m -> -3.28084 ft");
 
     expect_equal(
-        DistanceConverter::convert("mi", "m", 1),
-        1609.34,
-        "1 mi -> 1609.34 m"
-    );
-
-    expect_equal(
-        DistanceConverter::convert("ft", "m", 3.2808399),
-        1.0,
-        "~3.2808399 ft -> 1 m"
+        DistanceConverter::convert("km", "m", 1e6),
+        1e9,
+        "1,000,000 km -> 1,000,000,000 m"
     );
 
     expect_throws_invalid([](){ DistanceConverter::convert("unknown", "m", 1); }, "unknown from unit");
     expect_throws_invalid([](){ DistanceConverter::convert("m", "unknown", 1); }, "unknown to unit");
+
+    expect_throws_invalid([](){ DistanceConverter::convert("", "m", 5); }, "empty from unit");
+    expect_throws_invalid([](){ DistanceConverter::convert("m", "", 5); }, "empty to unit");
+
+
+    expect_throws_invalid([](){ DistanceConverter::convert("###", "m", 5); }, "garbage from unit");
 }
+
 
 void test_weight() {
     std::cout << "Running weight tests...\n";
-    expect_equal(
-        WeightConverter::convert("kg", "g", 2.5),
-        2500.0,
-        "2.5 kg -> 2500 g"
-    );
+
+    expect_equal(WeightConverter::convert("kg", "g", 2.5), 2500.0, "2.5 kg -> 2500 g");
+    expect_equal(WeightConverter::convert("lb", "kg", 2.2046226218), 1.0, "~2.2046 lb -> 1 kg");
+    expect_equal(WeightConverter::convert("t", "kg", 0.5), 500.0, "0.5 t -> 500 kg");
+
+    expect_equal(WeightConverter::convert("kg", "g", 0), 0.0, "0 kg -> 0 g");
+
+    expect_equal(WeightConverter::convert("kg", "g", -1), -1000.0, "-1 kg -> -1000 g");
+    expect_equal(WeightConverter::convert("g", "kg", -500), -0.5, "-500 g -> -0.5 kg");
 
     expect_equal(
-        WeightConverter::convert("lb", "kg", 2.2046226218),
-        1.0,
-        "~2.2046226218 lb -> 1 kg"
-    );
-
-    expect_equal(
-        WeightConverter::convert("t", "kg", 0.5),
-        500.0,
-        "0.5 t -> 500 kg"
+        WeightConverter::convert("t", "kg", 1e6),
+        1e9,
+        "1,000,000 t -> 1,000,000,000 kg"
     );
 
     expect_throws_invalid([](){ WeightConverter::convert("unknown", "kg", 1); }, "unknown from unit");
     expect_throws_invalid([](){ WeightConverter::convert("kg", "unknown", 1); }, "unknown to unit");
+
+    expect_throws_invalid([](){ WeightConverter::convert("", "kg", 1); }, "empty from unit");
+    expect_throws_invalid([](){ WeightConverter::convert("kg", "", 1); }, "empty to unit");
+
+    expect_throws_invalid([](){ WeightConverter::convert("***", "kg", 1); }, "garbage from unit");
 }
+
 
 void test_temperature() {
     std::cout << "Running temperature tests...\n";
-    expect_equal(
-        TemperatureConverter::convert("C", "F", 0.0),
-        32.0,
-        "0°C -> 32°F"
-    );
 
-    expect_equal(
-        TemperatureConverter::convert("F", "C", 32.0),
-        0.0,
-        "32°F -> 0°C"
-    );
+    expect_equal(TemperatureConverter::convert("C", "F", 0.0), 32.0, "0°C -> 32°F");
+    expect_equal(TemperatureConverter::convert("F", "C", 32.0), 0.0, "32°F -> 0°C");
+    expect_equal(TemperatureConverter::convert("K", "C", 273.15), 0.0, "273.15 K -> 0°C");
+    expect_equal(TemperatureConverter::convert("C", "K", -273.15), 0.0, "-273.15°C -> 0 K (absolute zero)");
 
-    expect_equal(
-        TemperatureConverter::convert("K", "C", 273.15),
-        0.0,
-        "273.15 K -> 0°C"
-    );
+    expect_equal(TemperatureConverter::convert("C", "C", 0.0), 0.0, "0°C -> 0°C");
+    expect_equal(TemperatureConverter::convert("F", "F", 0.0), 0.0, "0°F -> 0°F");
+    expect_equal(TemperatureConverter::convert("K", "K", 0.0), 0.0, "0 K -> 0 K");
 
-    expect_equal(
-        TemperatureConverter::convert("C", "K", -273.15),
-        0.0,
-        "-273.15°C -> 0 K (edge)"
-    );
+    expect_equal(TemperatureConverter::convert("C", "F", -40.0), -40.0, "-40°C -> -40°F");
+    expect_equal(TemperatureConverter::convert("F", "C", -40.0), -40.0, "-40°F -> -40°C");
 
     expect_throws_invalid([](){ TemperatureConverter::convert("unknown", "C", 1); }, "unknown from unit");
     expect_throws_invalid([](){ TemperatureConverter::convert("C", "unknown", 1); }, "unknown to unit");
+
+    expect_throws_invalid([](){ TemperatureConverter::convert("", "C", 1); }, "empty from unit");
+    expect_throws_invalid([](){ TemperatureConverter::convert("C", "", 1); }, "empty to unit");
+
+    expect_throws_invalid([](){ TemperatureConverter::convert("###", "C", 1); }, "garbage from unit");
 }
+
 
 int main() {
     test_distance();
