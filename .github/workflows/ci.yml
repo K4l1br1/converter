@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-test:
-    name: Build, Test, Package and Install
+    name: Build, Test, Package and Upload Artifacts
     runs-on: ubuntu-latest
 
     steps:
@@ -25,19 +25,14 @@ jobs:
             dpkg-dev debhelper fakeroot
 
     - name: Build project
-      run: |
-        echo "Building project..."
-        make -j"$(nproc)"
+      run: make -j"$(nproc)"
 
     - name: Build tests
-      run: |
-        echo "Building tests..."
-        make test
+      run: make test
 
     - name: Run unit tests
       run: |
         echo "Running test runner..."
-        # Тестовый бинарник может быть в корне или в tests/
         if [ -f ./test_runner ]; then
           chmod +x ./test_runner
           ./test_runner
@@ -45,34 +40,42 @@ jobs:
           chmod +x ./tests/test_runner
           ./tests/test_runner
         else
-          echo "ERROR: test_runner binary was not found after make test"
+          echo "ERROR: test_runner not found"
           exit 1
         fi
 
-    - name: Create Debian package if build_deb.sh exists
+    - name: Build .deb package
+      id: build_deb
       run: |
         if [ -f ./build_deb.sh ]; then
-          echo "Executing build_deb.sh..."
           chmod +x ./build_deb.sh
           ./build_deb.sh
         else
-          echo "No build_deb.sh — skipping .deb package build"
+          echo "No build_deb.sh — skipping"
         fi
 
-    - name: List build artifacts
+    - name: Collect build outputs
       run: |
-        echo "Listing artifacts..."
-        ls -la
+        mkdir -p artifacts
+        cp -v ./*.deb artifacts/ 2>/dev/null || true
+        cp -v ./unit_converter artifacts/ 2>/dev/null || true
+        cp -v ./test_runner artifacts/ 2>/dev/null || true
 
-    - name: Install .deb package or fallback to make install
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: artifacts/
+        retention-days: 30
+        if-no-files-found: warn
+
+    - name: Install .deb or fallback install
       run: |
         DEB=$(ls *.deb 2>/dev/null || true)
-
         if [ -n "$DEB" ]; then
-          echo "Found .deb: $DEB"
-          sudo dpkg -i "$DEB" || (sudo apt-get -f install -y && sudo dpkg -i "$DEB")
+          sudo dpkg -i "$DEB" \
+            || (sudo apt-get -f install -y && sudo dpkg -i "$DEB")
         else
-          echo "No .deb found — performing sudo make install"
           sudo make install
         fi
 
@@ -80,9 +83,7 @@ jobs:
       timeout-minutes: 1
       run: |
         if command -v unit_converter >/dev/null 2>&1; then
-          echo "unit_converter present"
-          timeout 5s unit_converter --help || echo "Smoke test timed out (program likely interactive)"
+          timeout 5s unit_converter --help || echo "Program interactive → help skipped"
         else
-          echo "unit_converter not found in PATH — listing"
-          ls -la /usr/bin/unit_converter /usr/local/bin/unit_converter 2>/dev/null || true
+          echo "unit_converter binary NOT found"
         fi
