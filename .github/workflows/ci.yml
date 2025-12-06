@@ -22,7 +22,8 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y \
             build-essential g++ make \
-            dpkg-dev debhelper fakeroot
+            dpkg-dev debhelper fakeroot \
+            rpm
 
     - name: Build project
       run: make -j"$(nproc)"
@@ -54,10 +55,21 @@ jobs:
           echo "No build_deb.sh — skipping"
         fi
 
+    - name: Build .rpm package
+      id: build_rpm
+      run: |
+        if [ -f ./build_rpm.sh ]; then
+          chmod +x ./build_rpm.sh
+          ./build_rpm.sh
+        else
+          echo "No build_rpm.sh — skipping"
+        fi
+
     - name: Collect build outputs
       run: |
         mkdir -p artifacts
         cp -v ./*.deb artifacts/ 2>/dev/null || true
+        cp -v ./*.rpm artifacts/ 2>/dev/null || true
         cp -v ./unit_converter artifacts/ 2>/dev/null || true
         cp -v ./test_runner artifacts/ 2>/dev/null || true
 
@@ -72,11 +84,13 @@ jobs:
     - name: Install .deb or fallback install
       run: |
         DEB=$(ls *.deb 2>/dev/null || true)
+        RPM=$(ls *.rpm 2>/dev/null || true)
         if [ -n "$DEB" ]; then
           sudo dpkg -i "$DEB" \
             || (sudo apt-get -f install -y && sudo dpkg -i "$DEB")
+        elif [ -n "$RPM" ]; then
+          sudo rpm -i "$RPM" || true
         else
           sudo make install
         fi
-
 
